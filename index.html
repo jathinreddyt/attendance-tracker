@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Class Attendance</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2 class="college-name">🎓 <strong>MALLA REDDY COLLEGE OF ENGINEERING</strong></h2>
+    <div class="dept-block">
+      <span class="dept-name"><strong>DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING</strong></span><br>
+      <span class="section-name"><strong>SECTION: CSE‑F</strong></span>
+    </div>
+
+    <h1>Class Attendance Tracker</h1>
+
+    <div id="student-list" class="student-list"></div>
+    <p class="hint">✔️ Unchecked = Present ☑️ Checked = Absent</p>
+
+    <div class="buttons">
+      <button id="submit-btn">Submit Attendance</button>
+      <button onclick="copyToClipboard()">Copy Summary</button>
+      <button onclick="shareToWhatsApp()">Share to WhatsApp</button>
+    </div>
+
+    <pre id="summary" class="summary"></pre>
+    <div class="log-section">
+      <h3>Attendance Log (Last 30 days)</h3>
+      <div id="log">No records yet.</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK + config -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
+    import { getFirestore }  from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCt3a40qMICx5EaBxxVt6EsMwtYTbpsBcw",
+      authDomain: "attendance-849eb.firebaseapp.com",
+      projectId: "attendance-849eb",
+      storageBucket: "attendance-849eb.firebasestorage.app",
+      messagingSenderId: "226907223744",
+      appId: "1:226907223744:web:3ac435cf6354ef9c2a1f25"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);  // expose globally
+  </script>
+
+  <!-- Main logic -->
+  <script src="app.js" type="module"></script>
+</body>
+</html>
