@@ -1,12 +1,12 @@
 /* ----------------------------------------------------------
-   Attendance App – v2 (timestamps + percentages) – FULL LIST
+   Attendance App – v2  (timestamps + 30‑day percentages)
 -----------------------------------------------------------*/
 import {
   collection, addDoc, serverTimestamp,
   query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 
-/* === FULL STUDENT LIST (108 names) === */
+/* === COMPLETE STUDENT LIST (108) === */
 const students = [
   { roll:"23Q91A05W5", name:"ABUZAR KHAN" },
   { roll:"23Q91A05W6", name:"ADUWALA RAHUL" },
@@ -73,7 +73,7 @@ const students = [
   { roll:"24Q95A0535", name:"POTTURU LAHARI" }
 ];
 
-/* === DOM render === */
+/* === render checklist === */
 const list=document.getElementById("student-list");
 students.forEach(s=>{
   const row=document.createElement("div");row.className="student-item";
@@ -83,24 +83,22 @@ students.forEach(s=>{
   row.append(cb,lab);list.appendChild(row);
 });
 
-/* === helper: get last 30 days === */
-async function getLast30(){
+/* === helpers === */
+const last30=async()=>{
   const thirty=new Date(Date.now()-30*24*60*60*1000);
-  const snap=await getDocs(query(
-    collection(window.db,"attendance"),where("timestamp",">=",thirty)
-  ));
+  const snap=await getDocs(
+    query(collection(window.db,"attendance"),where("timestamp",">=",thirty))
+  );
   return snap.docs.map(d=>d.data());
-}
-
-/* === running % calculation === */
-async function updatePerc(){
-  const recs=await getLast30();const total=recs.length||1;
-  const cnt={};recs.forEach(r=>r.present.forEach(x=>cnt[x]=(cnt[x]||0)+1));
+};
+const refreshPct=async()=>{
+  const recs=await last30();const total=recs.length||1;const cnt={};
+  recs.forEach(r=>r.present.forEach(x=>cnt[x]=(cnt[x]||0)+1));
   students.forEach(s=>s.percent=((cnt[s.roll]||0)/total*100).toFixed(1));
-}
-await updatePerc();
+};
+await refreshPct();
 
-/* === save attendance === */
+/* === submit/save === */
 document.getElementById("submit-btn").addEventListener("click",async()=>{
   const present=[],absent=[];
   students.forEach(s=>{
@@ -109,14 +107,11 @@ document.getElementById("submit-btn").addEventListener("click",async()=>{
   });
   const now=new Date();
   await addDoc(collection(window.db,"attendance"),{
-    date:now.toISOString().slice(0,10),
-    time:now.toLocaleTimeString(),
-    present,absent,
-    timestamp:serverTimestamp()
+    date:now.toISOString().slice(0,10),time:now.toLocaleTimeString(),
+    present,absent,timestamp:serverTimestamp()
   });
   alert("Attendance saved!");
-  await updatePerc();
-  showSummary(present,absent);loadLog();
+  await refreshPct();showSummary(present,absent);loadLog();
 });
 
 /* === summary & share === */
@@ -131,16 +126,15 @@ ${pct}`.trim();
 }
 window.copyToClipboard=()=>navigator.clipboard
   .writeText(document.getElementById("summary").innerText).then(()=>alert("Copied!"));
-window.shareToWhatsApp=()=>{
-  window.open(`https://wa.me/?text=${encodeURIComponent(
-    document.getElementById("summary").innerText)}`,"_blank");
-};
+window.shareToWhatsApp=()=>window.open(
+  `https://wa.me/?text=${encodeURIComponent(document.getElementById("summary").innerText)}`,"_blank"
+);
 
-/* === load log === */
+/* === log display === */
 async function loadLog(){
-  const recs=await getLast30();
+  const recs=await last30();
   document.getElementById("log").innerText=
-    recs.map(r=>`${r.date} ${r.time||""}: P${r.present.length} A${r.absent.length}`).join("\n")
-    ||"No records yet.";
+    recs.map(r=>`${r.date} ${r.time}: P${r.present.length} A${r.absent.length}`).join("\n")||
+    "No records yet.";
 }
 loadLog();
